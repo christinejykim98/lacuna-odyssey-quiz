@@ -803,27 +803,28 @@ class Component extends DCLogic {
 <script>
 (function(){
   var LABELS=["START","BLUEPRINT","MY READING","THE TWELVE","POSTER"];
+  var TEXT={ "START":"start over", "BLUEPRINT":"blueprint", "MY READING":"my reading", "THE TWELVE":"the twelve", "POSTER":"poster" };
   function origBar(){ return document.querySelector('[data-dc-tpl="311"]'); }
   function labelOf(b){ return (b.textContent||"").replace(/[^A-Za-z ]/g,"").replace(/\s+/g," ").trim().toUpperCase(); }
+  function avail(){ var bar=origBar(); if(bar) bar.style.display="none";
+    var set={}; (bar?[].slice.call(bar.querySelectorAll("button")):[]).forEach(function(b){ set[labelOf(b)]=1; });
+    return LABELS.filter(function(L){ return set[L]; }); }
+  function clickOrig(L){ var bar=origBar(); if(!bar) return; var btns=[].slice.call(bar.querySelectorAll("button"));
+    for(var i=0;i<btns.length;i++){ if(labelOf(btns[i])===L){ btns[i].click(); return; } } }
   var nav=document.createElement("div"); nav.id="lac-nav"; nav.style.display="none"; document.body.appendChild(nav);
-  var t=null;
-  function sync(){
-    var bar=origBar(); if(bar){ bar.style.display="none"; }
-    var map={}; (bar?[].slice.call(bar.querySelectorAll("button")):[]).forEach(function(b){ map[labelOf(b)]=b; });
-    var html=""; var have=[];
-    LABELS.forEach(function(L){ if(map[L]) have.push(L); });
-    if(have.length===0){ nav.style.display="none"; return; }
+  var lastKey=null, t=null;
+  function render(){
+    var have=avail(); var key=have.join("|");
+    if(key===lastKey) return;            // only rebuild when the action set changes (no churn)
+    lastKey=key;
+    if(!have.length){ nav.style.display="none"; nav.innerHTML=""; return; }
     nav.innerHTML="";
-    have.forEach(function(L){
-      var ob=map[L]; var nb=document.createElement("button");
-      nb.textContent = L==="START" ? "start over" : L==="MY READING" ? "my reading" : L.toLowerCase();
-      nb.addEventListener("click", function(){ ob.click(); setTimeout(sync,80); });
-      nav.appendChild(nb);
-    });
+    have.forEach(function(L){ var nb=document.createElement("button"); nb.textContent=TEXT[L]||L.toLowerCase();
+      nb.addEventListener("click", function(){ clickOrig(L); setTimeout(render, 90); }); nav.appendChild(nb); });
     nav.style.display="flex";
   }
-  function schedule(){ clearTimeout(t); t=setTimeout(sync,60); }
-  function start(){ if(origBar()){ new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["data-dc-tpl","class"]}); sync(); } else setTimeout(start,150); }
+  function schedule(){ clearTimeout(t); t=setTimeout(render, 80); }
+  function start(){ if(origBar()){ new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true}); render(); } else setTimeout(start,150); }
   start();
 })();
 </script>
