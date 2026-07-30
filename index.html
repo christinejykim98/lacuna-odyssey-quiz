@@ -787,5 +787,45 @@ class Component extends DCLogic {
   }
 }
 </script>
+
+<!-- clean public nav: hide the app's built-in bottom bar (palette/clock/nav) and mirror only the nav actions -->
+<style>
+  [data-dc-tpl="311"]{ display:none !important; }
+  #lac-nav{ position:fixed; left:50%; transform:translateX(-50%); bottom:16px; z-index:2147483000;
+    display:flex; gap:8px; padding:8px 10px; background:rgba(255,253,249,.82); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
+    border:2.5px solid #8A6FD1; border-radius:14px; box-shadow:3px 4px 0 rgba(138,111,209,.3); }
+  #lac-nav button{ font-family:"Silkscreen",monospace; font-size:10px; letter-spacing:.4px; text-transform:uppercase;
+    color:#6A4CA8; background:#fff; border:2px solid #C1AEEC; border-radius:9px; padding:8px 12px; cursor:pointer;
+    box-shadow:2px 2px 0 rgba(138,111,209,.22); transition:border-color .15s, transform .08s; }
+  #lac-nav button:hover{ border-color:#8A6FD1; }
+  #lac-nav button:active{ transform:translate(2px,2px); box-shadow:0 0 0; }
+</style>
+<script>
+(function(){
+  var LABELS=["START","BLUEPRINT","MY READING","THE TWELVE","POSTER"];
+  function origBar(){ return document.querySelector('[data-dc-tpl="311"]'); }
+  function labelOf(b){ return (b.textContent||"").replace(/[^A-Za-z ]/g,"").replace(/\s+/g," ").trim().toUpperCase(); }
+  var nav=document.createElement("div"); nav.id="lac-nav"; nav.style.display="none"; document.body.appendChild(nav);
+  var t=null;
+  function sync(){
+    var bar=origBar(); if(bar){ bar.style.display="none"; }
+    var map={}; (bar?[].slice.call(bar.querySelectorAll("button")):[]).forEach(function(b){ map[labelOf(b)]=b; });
+    var html=""; var have=[];
+    LABELS.forEach(function(L){ if(map[L]) have.push(L); });
+    if(have.length===0){ nav.style.display="none"; return; }
+    nav.innerHTML="";
+    have.forEach(function(L){
+      var ob=map[L]; var nb=document.createElement("button");
+      nb.textContent = L==="START" ? "start over" : L==="MY READING" ? "my reading" : L.toLowerCase();
+      nb.addEventListener("click", function(){ ob.click(); setTimeout(sync,80); });
+      nav.appendChild(nb);
+    });
+    nav.style.display="flex";
+  }
+  function schedule(){ clearTimeout(t); t=setTimeout(sync,60); }
+  function start(){ if(origBar()){ new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["data-dc-tpl","class"]}); sync(); } else setTimeout(start,150); }
+  start();
+})();
+</script>
 </body>
 </html>
