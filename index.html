@@ -799,6 +799,12 @@ class Component extends DCLogic {
     box-shadow:2px 2px 0 rgba(138,111,209,.22); transition:border-color .15s, transform .08s; }
   #lac-nav button:hover{ border-color:#8A6FD1; }
   #lac-nav button:active{ transform:translate(2px,2px); box-shadow:0 0 0; }
+  /* mobile-opt */
+  @media (max-width: 640px){
+    [data-dc-tpl="20"]{ display:none !important; }        /* hide desktop FILE/VIEW/clock menu bar on phones */
+    #lac-nav{ gap:6px; padding:6px 8px; max-width:94vw; flex-wrap:wrap; }
+    #lac-nav button{ font-size:8.5px; padding:6px 9px; white-space:nowrap; }
+  }
 </style>
 <script>
 (function(){
